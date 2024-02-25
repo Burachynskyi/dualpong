@@ -1,13 +1,17 @@
+//змінні документу
 let canvas = document.getElementById('canvas')
 let ctx = canvas.getContext('2d')
 let canvasText = document.getElementById('canvas-text')
 
+//кольори канвасу
 let nightColor = 'rgb(22, 69, 81)'
 let dayColor = 'rgb(213, 229, 222)'
 
+//ширина квадратиків і кружків
 let rectSide = 25
 let circleSide = 25
 
+//кількість квадратиків на одну сторону канвасу, загальна кількість, половина від загальної кількості
 let sideCount = canvas.clientWidth / rectSide
 let allRect = sideCount * sideCount
 let dayRect = allRect / 2
