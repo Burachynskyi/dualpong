@@ -16,14 +16,18 @@ let sideCount = canvas.clientWidth / rectSide
 let allRect = sideCount * sideCount
 let dayRect = allRect / 2
 
+//змінна таймеру і частота оновлення кадрів
 let innerTimer = null
 let FPS = 60
 
+//крок руху кружків по суміжним осям
 const STEP = 10
 
+//масив квадратиків
 let rectArray = new Array()
 
 
+//об'єкти кружків, позиція і напрямок руху (вгору/не вгору, вліво/не вліво) генеруються випадково
 let nightCircle = {
     left: Math.random() * (sideCount - circleSide) + circleSide / 2,
     top: Math.random() * (canvas.clientHeight - circleSide) + circleSide / 2,
@@ -42,6 +46,7 @@ let dayCircle = {
     topStream: (Math.random() < 0.5 ? true : false)
 }
 
+//масив кружків (для зручності)
 let circleArray = [dayCircle, nightCircle]
 
 //=============================================================================
@@ -50,16 +55,29 @@ launch()
 
 //=============================================================================
 
+//функція запуску алгоритму
 function launch(){
+    //ініціалізація масиву квадратиків
     setRectArray()
+
+    //перше оновлення екрану (прорисовка)
     draw()
 
+    //встановлення напису лічильника квадратиків
     setText(dayRect, allRect)
+
+    //запуск таймера, який запускатиме функцію руху 60 разів за секунду
     innerTimer = setInterval(Move, 1000 / FPS)
 }
 
+//функція руху
 function Move(){
+    //цикл, що перелічує обидва кружки
     for(let i = 0; i < 2; i++){
+        /*Комплекс умов, які оброблюють колізію кружків. Якщо кружок доторкується до меж канвасу, то напрямок руху змінюється на протилежний,
+        якщо кружок доторкується до квадрата свого кольору, то відбувається те саме, але колір дотичного квадрату змінюється.
+        Кружок може рухатися лише в 4-х напрямках, які визначаються двома булевими зміннами, які визначають дві суміжні осі руху. Наприклад:
+        вверх і вліво - це значить рух у верхній лівий кут, і таким чином зміна однієї суміжної осі імітує дзеркальне відбивання під кутом 90 градусів, а двох - повну зміну напряму на 180 градусів*/
         if(circleArray[i].topStream){
             let rect = getRect(parseInt((circleArray[i].top - circleArray[i].radius) / rectSide), parseInt(circleArray[i].left / rectSide))
             if(circleArray[i].top - circleArray[i].radius <= 0){
@@ -96,6 +114,7 @@ function Move(){
             }
         }
 
+        //комплекс умов, які, залежно від визначених напрямів, змінюють положення кружків
         if(circleArray[i].topStream){
             circleArray[i].top = circleArray[i].top - STEP
         }else{
@@ -109,19 +128,24 @@ function Move(){
         }
     }
 
+    //прорисовка кадру
     draw()
 }
 
+//функція оновлення текстового лічильника кількості квадратів на канвасі
 function setText(dayRect, allRect){
     canvasText.textContent = `day ${dayRect} | night ${allRect - dayRect}`
 }
 
+//функція прорисовки 
 function draw(){
+    //прорисовка квадратів, відповідно до їхньої позиції та кольору
     rectArray.forEach((element) => {
         ctx.fillStyle = element.color
         ctx.fillRect(element.left, element.top, rectSide, rectSide)
     })
 
+    //фпрорисовки кружків, відповідно до визначених параметрів
     for(let i = 0; i < 2; i++){
         ctx.beginPath();
         ctx.arc(circleArray[i].left, circleArray[i].top, circleArray[i].radius, 0, 2 * Math.PI);
@@ -132,17 +156,19 @@ function draw(){
         ctx.closePath()
     }
 
+    //перевірка на завершення гри, і у разі закінчення - зупинка таймеру й оновлення текстового напису під канвасом
     if(dayRect == 0 || dayRect == allRect){
         clearTimeout(innerTimer)
         innerTimer = null
 
         canvasText.textContent = `${(dayRect <= 0 ? 'Night' : 'Day')} won`
     }else{
+        //звичайне оновлення текстового напису під канвасом
         setText(dayRect, allRect)
     }
 }
 
-
+//ініціалізація масиву квадратиків на канвасі, кожен квадрат - це об'єкт, що зберігає позицію квадрата і його колір
 function setRectArray(){
     for(let i = 0; i < sideCount; i++){
         for(let y = 0; y < sideCount; y++){
@@ -152,6 +178,7 @@ function setRectArray(){
                 top: i * rectSide
             }
 
+            //умова, що визначає, які з квадратиків розташовані праворуч - і змінює їхній колір на відповідний
             if(y >= sideCount / 2){
                 obj.color = nightColor
             }
@@ -161,10 +188,13 @@ function setRectArray(){
     }
 }
 
+//функція, що дозволяє звертатися до лінійного масиву, як до двовимірного
 function getRect(i, y){
     return rectArray[i * sideCount + y]
 }
 
+//функція, що повертає значення протилежного кольору, а також фіксує кількість квадратиків одного з кольорів
+//себто якщо колір змінюється на протилежний, то в контексті функції Move() це одначає зміну пропорції квадратиків двох кольорів
 function gerReverseColor(color){
     if(color == dayColor){
         dayRect -= 1
